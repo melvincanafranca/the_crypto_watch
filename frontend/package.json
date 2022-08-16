@@ -13,6 +13,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-tates": "^0.2.0",
+    "react-transition-group": "^4.4.5",
     "tates": "^0.3.4"
   },
   "devDependencies": {
