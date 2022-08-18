@@ -124,3 +124,41 @@ function CSSTransition({
     </ReactCSSTransition>
   );
 }
+
+export interface TransitionProps {
+  [key: string]: any;
+  show?: boolean;
+  appear?: boolean;
+}
+
+function Transition({ show, appear, ...rest }: TransitionProps) {
+  const { parent } = useContext(TransitionContext);
+  const isInitialRender = useIsInitialRender();
+  const isChild = show === undefined;
+
+  if (isChild) {
+    return (
+      <CSSTransition
+        appear={parent.appear || !parent.isInitialRender}
+        show={parent.show}
+        {...rest}
+      />
+    );
+  }
+
+  return (
+    <TransitionContext.Provider
+      value={{
+        parent: {
+          show,
+          isInitialRender,
+          appear,
+        },
+      }}
+    >
+      <CSSTransition appear={appear} show={show} {...rest} />
+    </TransitionContext.Provider>
+  );
+}
+
+export default Transition;
