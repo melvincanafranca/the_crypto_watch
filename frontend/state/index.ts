@@ -16,7 +16,7 @@ export interface News {
   summary: string;
   url: string;
   images: Image[];
-  symbols: string;
+  symbols: string[];
   source: string;
 }
 
@@ -62,8 +62,8 @@ export interface State {
   currentStockBars: [number, number][] | null;
 }
 
-const API_URL = process.env.PUBLIC_API_URL;
-const WS_URL = process.env.PUBLIC_WS_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL;
 const tate = tates<State>();
 const { state, subscribe, clone } = tate;
 
@@ -83,9 +83,9 @@ function change(current: number, previous: number) {
 }
 
 if (!isServerSide()) {
-  const trendingWS = new WebSocket(`${WS_URL}/trending`);
-  trendingWS.onmessage = async (event) => {
-    let data = event.data;
+  const trendingWs = new WebSocket(`${WS_URL}/trending`);
+  trendingWs.onmessage = async (ev) => {
+    let data = ev.data;
 
     if (typeof data === "string") {
       data = JSON.parse(data);
@@ -94,16 +94,15 @@ if (!isServerSide()) {
     state.trending = data;
   };
 
-  const tradeWS = new WebSocket(`${WS_URL}/trade`);
-  tradeWS.onmessage = async (event) => {
+  const tradeWs = new WebSocket(`${WS_URL}/trade`);
+  tradeWs.onmessage = async (ev) => {
     if (!state.currentStock) {
       return;
     }
-
-    let incomingTrade: IncomingTrade = event.data;
+    let incomingTrade: IncomingTrade = ev.data;
 
     if (typeof incomingTrade === "string") {
-      incomingTrade = JSON.parse(event.data);
+      incomingTrade = JSON.parse(ev.data);
     }
 
     if (!state.stockInfo) {
@@ -118,13 +117,13 @@ if (!isServerSide()) {
     };
   };
 
-  const barWS = new WebSocket(`${WS_URL}/bars`);
-  barWS.onmessage = async (event) => {
+  const barWs = new WebSocket(`${WS_URL}/bars`);
+  barWs.onmessage = async (ev) => {
     if (!state.currentStock) {
       return;
     }
 
-    if (event.data === state.currentStock.pk) {
+    if (ev.data === state.currentStock.pk) {
       await actor.getCurrentStockBars(state.currentStock.pk);
     }
   };
@@ -156,7 +155,6 @@ const actions = {
         fetch(`${API_URL}/trade/${stock.symbol}`),
         fetch(`${API_URL}/close/${stock.symbol}`),
       ]);
-
       const [trades, close]: [[number, number], [number, number]] =
         await Promise.all([tradesResponse.json(), closeResponse.json()]);
 
@@ -196,9 +194,20 @@ const actions = {
 
     void this.getWatchList();
   },
+  async unwatch(symbol: string) {
+    await fetch(`${API_URL}/watchlist/${symbol}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    void this.getWatchList();
+  },
   async search(query: string) {
     if (!query || query.length < 3) {
       state.searchResults = [];
+
       return;
     }
 

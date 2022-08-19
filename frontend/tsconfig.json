@@ -20,7 +20,7 @@
       "@state/*": ["state/*"],
       "@state": ["state/index.ts"],
       "@utilities/*": ["utilities/*"],
-      "@utilities/index.ts": ["utilities/index.ts"],
+      "@utilities": ["utilities/index.ts"],
       "@public/*": ["public/*"]
     }
   },

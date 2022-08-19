@@ -147,3 +147,5 @@ function SearchModal({
     </>
   );
 }
+
+export default SearchModal;
